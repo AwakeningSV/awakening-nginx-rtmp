@@ -29,7 +29,7 @@ RUN mkdir -p /var/log/nginx /var/cache/nginx
 RUN cd /root && curl -L https://github.com/arut/nginx-rtmp-module/tarball/5fb4c99ca93442c571354af6a40a4f3ef736af57 > nginx-rtmp.tgz \
     && mkdir nginx-rtmp && tar xzf nginx-rtmp.tgz -C nginx-rtmp --strip 1 
 
-RUN mkdir /www && cp /root/nginx-rtmp/stat.xsl /www && chown -R nginx:nginx /www
+RUN mkdir /www && cp /root/nginx-rtmp/stat.xsl /www/info.xsl && chown -R nginx:nginx /www
 
 RUN cd /root \
     && curl -L -O http://nginx.org/download/nginx-1.7.5.tar.gz \
