@@ -51,8 +51,23 @@ http {
 		location /info.xsl {
 			root /www;
 		}
-	}
-		
+
+        location /rtmp/on_publish {
+            secure_link $arg_st,$arg_e;
+            secure_link_md5 "${PUBLISH_SECRET} $arg_name";
+
+            if ($secure_link = "") {
+                # bad hash
+                return 501;
+            }
+
+            # ignore expiration
+
+            return 200;
+        }
+
+    }
+
 }
 
 rtmp_auto_push on;
@@ -61,8 +76,9 @@ rtmp {
 
     server {
         listen 1935;
+        notify_method get;
 
-      	chunk_size 131072;
+        chunk_size 131072;
         max_message 12M;
         buflen 2s;
 
@@ -71,6 +87,8 @@ rtmp {
             drop_idle_publisher 5s;
             allow play 127.0.0.1;
             deny play all;
+
+            on_publish http://localhost/rtmp/on_publish;
 
             exec_push /usr/local/bin/avconv -i rtmp://localhost/src/$name
                 -filter:v scale=-1:460

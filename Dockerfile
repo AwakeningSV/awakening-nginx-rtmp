@@ -72,9 +72,13 @@ RUN cd /root \
         --with-ipv6 \
    && make install
 
-ADD nginx.conf /etc/nginx/nginx.conf
+RUN mkdir -p /etc/nginx/templates
+
+ADD templates/ /etc/nginx/templates/
+ADD sbin/ /usr/sbin/
 
 EXPOSE 80
 EXPOSE 1935
 
+ENTRYPOINT ["/usr/sbin/entrypoint.sh"]
 CMD ["/usr/sbin/nginx", "-c", "/etc/nginx/nginx.conf"]
