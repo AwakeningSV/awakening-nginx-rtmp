@@ -39,31 +39,29 @@ http {
 			    add_header Cache-Control no-cache;
 		}
 
-		location /stat {
-			rtmp_stat all;
-		}
-
-		location /info {
-			rtmp_stat all;
-			rtmp_stat_stylesheet info.xsl;
-		}
-
-		location /info.xsl {
-			root /www;
-		}
-
-        location /rtmp/on_publish {
-            secure_link $arg_st,$arg_e;
-            secure_link_md5 "${PUBLISH_SECRET} $arg_name";
+        location /p/ {
+            secure_link_secret "${PUBLISH_SECRET}";
 
             if ($secure_link = "") {
-                # bad hash
-                return 501;
+                return 403;
             }
 
-            # ignore expiration
+            rewrite ^ /secure/$secure_link;
+        }
 
-            return 200;
+        location /secure/stat {
+            internal;
+            rtmp_stat all;
+        }
+
+        location /secure/info {
+            internal;
+            rtmp_stat all;
+            rtmp_stat_stylesheet /info.xsl;
+        }
+
+        location /info.xsl {
+            root /www;
         }
 
     }
@@ -82,16 +80,15 @@ rtmp {
         max_message 12M;
         buflen 2s;
 
-        application src {
+        application pub_${PUBLISH_SECRET} {
             live on;
             drop_idle_publisher 5s;
             allow play 127.0.0.1;
             deny play all;
 
-            on_publish http://localhost/rtmp/on_publish;
             push rtmp://localhost/player/$name name=$name;
 
-            exec_push /usr/local/bin/avconv -i rtmp://localhost/src/$name
+            exec_push /usr/local/bin/avconv -i rtmp://localhost/pub_${PUBLISH_SECRET}/$name
                 -filter:v scale=-1:460
                 -c:a libfdk_aac -b:a 32k  -c:v libx264 -b:v 128k  -f flv rtmp://localhost/hls/$name_128
                 -c:a libfdk_aac -b:a 128k -c:v libx264 -b:v 512k  -f flv rtmp://localhost/hls/$name_512;
