@@ -74,13 +74,13 @@ RUN cd /root \
 
 RUN ldconfig
 
+EXPOSE 80
+EXPOSE 1935
+
 RUN mkdir -p /etc/nginx/templates
 
 ADD templates/nginx.conf.tmpl /etc/nginx/templates/nginx.conf.tmpl
 ADD sbin/ /usr/sbin/
-
-EXPOSE 80
-EXPOSE 1935
 
 ENTRYPOINT ["/usr/sbin/entrypoint.sh"]
 CMD ["/usr/sbin/nginx", "-c", "/etc/nginx/nginx.conf"]
