@@ -76,7 +76,7 @@ RUN ldconfig
 
 RUN mkdir -p /etc/nginx/templates
 
-ADD templates/ /etc/nginx/templates/
+ADD templates/nginx.conf.tmpl /etc/nginx/templates/nginx.conf.tmpl
 ADD sbin/ /usr/sbin/
 
 EXPOSE 80
