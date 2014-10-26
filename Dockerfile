@@ -72,6 +72,8 @@ RUN cd /root \
         --with-ipv6 \
    && make install
 
+RUN ldconfig
+
 RUN mkdir -p /etc/nginx/templates
 
 ADD templates/ /etc/nginx/templates/
