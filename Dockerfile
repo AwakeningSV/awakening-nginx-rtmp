@@ -79,8 +79,11 @@ EXPOSE 1935
 
 RUN mkdir -p /etc/nginx/templates
 
+ADD sbin/substitute-env-vars.sh /usr/sbin/substitute-env-vars.sh
+ADD sbin/render-templates.sh /usr/sbin/render-templates.sh
+ADD sbin/entrypoint.sh /usr/sbin/entrypoint.sh
+
 ADD templates/nginx.conf.tmpl /etc/nginx/templates/nginx.conf.tmpl
-ADD sbin/ /usr/sbin/
 
 ENTRYPOINT ["/usr/sbin/entrypoint.sh"]
 CMD ["/usr/sbin/nginx", "-c", "/etc/nginx/nginx.conf"]
