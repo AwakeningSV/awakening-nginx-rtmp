@@ -89,6 +89,7 @@ rtmp {
             deny play all;
 
             on_publish http://localhost/rtmp/on_publish;
+            push rtmp://localhost/player/$name name=$name;
 
             exec_push /usr/local/bin/avconv -i rtmp://localhost/src/$name
                 -filter:v scale=-1:460
@@ -104,8 +105,6 @@ rtmp {
 
             wait_key on;
             wait_video on;
-
-            pull rtmp://localhost/src/theater name=theater;
         }
 
         application hls {
