@@ -26,17 +26,17 @@ RUN groupadd nginx
 RUN useradd -m -g nginx nginx
 RUN mkdir -p /var/log/nginx /var/cache/nginx
 
-RUN cd /root && curl -L https://github.com/arut/nginx-rtmp-module/tarball/5fb4c99ca93442c571354af6a40a4f3ef736af57 > nginx-rtmp.tgz \
+RUN cd /root && curl -L https://github.com/arut/nginx-rtmp-module/archive/v1.1.6.tar.gz > nginx-rtmp.tgz \
     && mkdir nginx-rtmp && tar xzf nginx-rtmp.tgz -C nginx-rtmp --strip 1 
 
 RUN mkdir /www && cp /root/nginx-rtmp/stat.xsl /www/info.xsl && chown -R nginx:nginx /www
 
 RUN cd /root \
-    && curl -L -O http://nginx.org/download/nginx-1.7.5.tar.gz \
-    && curl -L -O http://nginx.org/download/nginx-1.7.5.tar.gz.asc \
+    && curl -L -O http://nginx.org/download/nginx-1.7.7.tar.gz \
+    && curl -L -O http://nginx.org/download/nginx-1.7.7.tar.gz.asc \
     && gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-key A1C052F8 \
-    && gpg nginx-1.7.5.tar.gz.asc \
-    && tar xzf nginx-1.7.5.tar.gz && cd nginx-1.7.5 \
+    && gpg nginx-1.7.7.tar.gz.asc \
+    && tar xzf nginx-1.7.7.tar.gz && cd nginx-1.7.7 \
     && ./configure \
         --prefix=/etc/nginx \
         --sbin-path=/usr/sbin/nginx \
