@@ -86,8 +86,6 @@ rtmp {
             allow play 127.0.0.1;
             deny play all;
 
-            push rtmp://localhost/player/$name name=$name;
-
             exec_push /usr/local/bin/avconv -i rtmp://localhost/pub_${PUBLISH_SECRET}/$name
                 -filter:v scale=-1:460
                 -c:a libfdk_aac -b:a 32k  -c:v libx264 -b:v 128k  -f flv rtmp://localhost/hls/$name_128
@@ -99,6 +97,8 @@ rtmp {
 
             allow publish 127.0.0.1;
             deny publish all;
+
+            pull rtmp://localhost/pub_${PUBLISH_SECRET} live=1;
 
             wait_key on;
             wait_video on;
