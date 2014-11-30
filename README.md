@@ -42,7 +42,9 @@ Statistic URLs contain references to the `PUBLISH_SECRET`, so they are protected
 You can visit these protected resources by visiting `/p/{token}/{resource-name}`, where
 `{token}` is set the the result of:
 
-   echo -n '{resource-name}{PUBLISH_SECRET}' | openssl md5 -hex
+```
+echo -n '{resource-name}{PUBLISH_SECRET}' | openssl md5 -hex
+```
 
 ## License
 
