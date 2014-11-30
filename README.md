@@ -10,15 +10,12 @@ passed to the Docker container as an environment variable.
 You must set the following environment variables:
 
  - `PUBLISH_SECRET`: Secret token for publishing and statistics.
- - `STANDBY_IMAGE_URL`: URL to a PNG image displayed to HLS clients when nothing else is being published.
-    The image is downloaded before starting the server.
 
 This image exposes ports `80` for HTTP and `1935` for RTMP.
 
 ### Example
 
     docker run -e PUBLISH_SECRET=VERY_SECRET_KEY
-               -e STANDBY_IMAGE_URL=http://example.com/standby.png
                -p 80:80 -p 1935:1935 awakening/awakening-nginx-rtmp
 
 

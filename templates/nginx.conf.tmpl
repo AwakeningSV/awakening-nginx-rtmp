@@ -109,12 +109,6 @@ rtmp {
             allow publish 127.0.0.1;
             deny publish all;
 
-            # Attempt to show standby image by publishing it
-            # This command must fail if a stream is already publishing
-            exec_pull /usr/local/bin/avconv -loop 1
-                -i /etc/nginx/standby.png -c:v libx264 -tune stillimage -t 10
-                -f flv rtmp://localhost/hls/$name;
-
             hls on;
             hls_path /tmp/hls;
             hls_fragment 15s;
