@@ -31,12 +31,79 @@ http {
 		}
 
 		location /hls {
-			    types {
-                    application/vnd.apple.mpegurl m3u8;
-			    }
+            types {
+                application/vnd.apple.mpegurl m3u8;
+            }
 
-			    root /tmp;
-			    add_header Cache-Control no-cache;
+            root /tmp;
+            add_header Cache-Control no-cache;
+
+            # CORS
+            # based on: https://gist.github.com/algal/5480916
+            # based on: https://gist.github.com/alexjs/4165271
+
+            # if the request included an Origin: header with an origin on the whitelist,
+            # then it is some kind of CORS request.
+
+            if ($http_origin ~* ${CORS_HTTP_ORIGIN}) {
+                set $cors "true";
+            }
+
+            # Nginx doesn't support nested If statements, so we use string
+            # concatenation to create a flag for compound conditions
+
+            # OPTIONS indicates a CORS pre-flight request
+            if ($request_method = 'OPTIONS') {
+                set $cors "${cors}options";
+            }
+
+            # non-OPTIONS indicates a normal CORS request
+            if ($request_method = 'GET') {
+                set $cors "${cors}get";
+            }
+            if ($request_method = 'POST') {
+                set $cors "${cors}post";
+            }
+
+            # if it's a GET or POST, set the standard CORS responses header
+            if ($cors = "trueget") {
+                # Tells the browser this origin may make cross-origin requests
+                # (Here, we echo the requesting origin, which matched the whitelist.)
+                add_header 'Access-Control-Allow-Origin' "$http_origin";
+                # Tells the browser it may show the response, when XmlHttpRequest.withCredentials=true.
+                add_header 'Access-Control-Allow-Credentials' 'true';
+            }
+
+            if ($cors = "truepost") {
+                # Tells the browser this origin may make cross-origin requests
+                # (Here, we echo the requesting origin, which matched the whitelist.)
+                add_header 'Access-Control-Allow-Origin' "$http_origin";
+                # Tells the browser it may show the response, when XmlHttpRequest.withCredentials=true.
+                add_header 'Access-Control-Allow-Credentials' 'true';
+            }
+
+            # if it's OPTIONS, then it's a CORS preflight request so respond immediately with no response body
+            if ($cors = "trueoptions") {
+                # Tells the browser this origin may make cross-origin requests
+                # (Here, we echo the requesting origin, which matched the whitelist.)
+                add_header 'Access-Control-Allow-Origin' "$http_origin";
+                # in a preflight response, tells browser the subsequent actual request can include user credentials (e.g., cookies)
+                add_header 'Access-Control-Allow-Credentials' 'true';
+
+                # Tell browser to cache this pre-flight info for 20 days
+                add_header 'Access-Control-Max-Age' 1728000;
+
+                add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+
+                add_header 'Access-Control-Allow-Headers' 'Authorization,Content-Type,Accept,Origin,User-Agent,DNT,Cache-Control,X-Mx-ReqToken,Keep-Alive,X-Requested-With,If-Modified-Since';
+
+                # no body in this response
+                add_header 'Content-Length' 0;
+                # (should not be necessary, but included for non-conforming browsers)
+                add_header 'Content-Type' 'text/plain charset=UTF-8';
+                # indicate successful return with no content
+                return 204;
+            }
 		}
 
         location /p/ {
