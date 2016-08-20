@@ -38,6 +38,7 @@ http {
             root /tmp;
             add_header Cache-Control no-cache;
 
+{{if exists "/live/cors"}}
             # CORS
             # based on: https://gist.github.com/algal/5480916
             # based on: https://gist.github.com/alexjs/4165271
@@ -45,7 +46,7 @@ http {
             # if the request included an Origin: header with an origin on the whitelist,
             # then it is some kind of CORS request.
 
-            if ($http_origin ~* ${CORS_HTTP_ORIGIN}) {
+            if ($http_origin ~* ${{getv "/live/cors"}}) {
                 set $cors "true";
             }
 
@@ -104,10 +105,11 @@ http {
                 # indicate successful return with no content
                 return 204;
             }
+{{end}}
 		}
 
         location /p/ {
-            secure_link_secret "${PUBLISH_SECRET}";
+            secure_link_secret "{{getv "/live/secret"}}";
 
             if ($secure_link = "") {
                 return 403;
@@ -147,16 +149,17 @@ rtmp {
         max_message 12M;
         buflen 2s;
 
-        application pub_${PUBLISH_SECRET} {
+        application pub_{{getv "/live/secret"}} {
             live on;
             drop_idle_publisher 5s;
             allow play 127.0.0.1;
             deny play all;
 
-            exec_push /usr/local/bin/avconv -i rtmp://localhost/pub_${PUBLISH_SECRET}/$name
+            exec_push /usr/local/bin/avconv -i rtmp://localhost/pub_{{getv "/live/secret"}}/$name
                 -filter:v scale=-1:460
-                -c:a libfdk_aac -b:a 32k  -c:v libx264 -b:v 128k  -f flv rtmp://localhost/hls/$name_128
-                -c:a libfdk_aac -b:a 128k -c:v libx264 -b:v 512k  -f flv rtmp://localhost/hls/$name_512;
+                {{range getvs "/live/encodings/*"}}{{ $bitrates := split . ":" }}-c:a libfdk_aac -b:a {{index $bitrates 1}}k  -c:v libx264 -b:v {{index $bitrates 0}}k  -f flv rtmp://localhost/hls/$name_{{index $bitrates 0}}
+                {{end}}{{range getvs "/live/downstreams/*"}}-c:a copy -c:v copy -f flv {{.}}
+                {{end}};
         }
 
         application player {
@@ -165,7 +168,7 @@ rtmp {
             allow publish 127.0.0.1;
             deny publish all;
 
-            pull rtmp://localhost/pub_${PUBLISH_SECRET} live=1;
+            pull rtmp://localhost/pub_{{getv "/live/secret"}} live=1;
 
             wait_key on;
             wait_video on;
@@ -181,8 +184,10 @@ rtmp {
             hls_fragment 15s;
             hls_nested on;
 
-            hls_variant _128   BANDWIDTH=160000;
-            hls_variant _512   BANDWIDTH=640000;
+            {{range getvs "/live/encodings/*"}}
+            {{ $bitrates := split . ":" }}
+            hls_variant _{{index $bitrates 0}}   BANDWIDTH={{index $bitrates 2}};
+            {{end}}
         }
 
     }

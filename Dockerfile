@@ -74,18 +74,19 @@ RUN cd /root \
         --with-ipv6 \
    && make install
 
+RUN cd /root && curl -L https://github.com/kelseyhightower/confd/releases/download/v0.12.0-alpha3/confd-0.12.0-alpha3-linux-amd64 > confd \
+    && mv confd /usr/local/bin/confd && chmod +x /usr/local/bin/confd
+
+ADD templates/nginx.conf.tmpl /etc/confd/templates/nginx.conf.tmpl
+ADD conf.d/nginx.toml /etc/confd/conf.d/nginx.toml
+
 RUN ldconfig
 
 EXPOSE 80
 EXPOSE 1935
 
-RUN mkdir -p /etc/nginx/templates
-
-ADD sbin/substitute-env-vars.sh /usr/sbin/substitute-env-vars.sh
-ADD sbin/render-templates.sh /usr/sbin/render-templates.sh
 ADD sbin/entrypoint.sh /usr/sbin/entrypoint.sh
-
-ADD templates/nginx.conf.tmpl /etc/nginx/templates/nginx.conf.tmpl
+ADD sbin/confd-reload-nginx.sh /usr/sbin/confd-reload-nginx.sh
 
 ENTRYPOINT ["/usr/sbin/entrypoint.sh"]
 CMD ["/usr/sbin/nginx", "-c", "/etc/nginx/nginx.conf"]

@@ -2,24 +2,42 @@
 
 Live streaming video server for Flash, iOS and Android
 
-## Usage
-
-Publishing is restricted to clients who supply the pre-shared `PUBLISH_SECRET`,
-passed to the Docker container as an environment variable.
+## Configuration with environment variables
 
 You must set the following environment variables:
 
- - `PUBLISH_SECRET`: Secret token for publishing and statistics.
- - `CORS_HTTP_ORIGIN`: HTTP origin regex to allow CORS on the /hls location.
+ - `LIVE_SECRET`: Secret token for publishing and statistics.
+ - `LIVE_ENCODINGS_{name}`: You must set one or more of these variables
+    that represent the transcoding rates and HLS variant bandwidth.
+    These settings will depend on your hardware capability and desired quality.
+    The format is `{video_kilobits}:{audio_kilobits}:{bandwidth}`.
+    For full details, see `templates/nginx.conf.tmpl` and refer to the nginx-rtmp
+    documentation.
+
+These settings are optional:
+
+ - `LIVE_DOWNSTREAMS_{name}`: Corresponds to an RTMP URL that will recieve a copy of
+    the incoming stream. _You should only accept a single stream if you use this setting._
+ - `LIVE_CORS`: HTTP origin regex to allow CORS on the /hls location.
 
 This image exposes ports `80` for HTTP and `1935` for RTMP.
 
 ### Example
 
-    docker run -e PUBLISH_SECRET=VERY_SECRET_KEY
-               -e CORS_HTTP_ORIGIN='(https?://[^/]*\.awakeningchurch\.com(:[0-9]+)?)'
+    docker run -e LIVE_SECRET=VERY_SECRET_KEY
+               -e LIVE_ENCODINGS_LOW=128:64:160000
+               -e LIVE_ENCODINGS_MED=512:128:640000
                -p 80:80 -p 1935:1935 awakening/awakening-nginx-rtmp
 
+## Dynamic configuration reloading with etcd
+
+If `ETCD_URL` is provided, configuration is expected to come from the etcd service.
+
+The configuration is the same as above, except they correspond to etcd keys like `/live/cors`,
+`/live/secret`, `/live/downstreams/example`, etc.
+
+The container will poll for changes every 10 seconds. If changes are detected,
+nginx will be reloaded with new configuration.
 
 ## Publish URL
 
@@ -47,6 +65,14 @@ You can visit these protected resources by visiting `/p/{token}/{resource-name}`
 ```
 echo -n '{resource-name}{PUBLISH_SECRET}' | openssl md5 -hex
 ```
+
+## Deprecated environment variables
+
+These environment variables are deprecated.
+They still work but may be removed in the future.
+
+ - `PUBLISH_SECRET`, use `LIVE_SECRET` instead
+ - `HTTP_CORS_ORIGIN`, use `LIVE_CORS` instead
 
 ## License
 
