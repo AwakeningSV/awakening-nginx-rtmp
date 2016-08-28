@@ -16,7 +16,7 @@ The variants option allows for customization beyond the default encoder settings
  - `LIVE_VARIANTS_{name}`: Represents video and audio transcoding
     rates and the associated HLS variant bandwidth.
     These settings will depend on your hardware capability and desired quality.
-    The format is `{video_kbps}:{audio_kbps}:{bandwidth_bps}`.
+    The format is `{resolution}:{video_kbps}:{audio_kbps}:{bandwidth_bps}`.
     For full details, see `templates/nginx.conf.tmpl` and refer to the nginx-rtmp
     documentation.
 
@@ -35,8 +35,8 @@ This image exposes ports `80` for HTTP and `1935` for RTMP.
 ### Example
 
     docker run -e LIVE_SECRET=VERY_SECRET_KEY
-               -e LIVE_VARIANTS_LOW=128:64:192000
-               -e LIVE_VARIANTS_MED=512:128:640000
+               -e LIVE_VARIANTS_LOW=640x480:128:64:192000
+               -e LIVE_VARIANTS_MED=640x480:512:128:640000
                -p 80:80 -p 1935:1935 awakening/awakening-nginx-rtmp
 
 ## Dynamic configuration reloading with etcd

@@ -8,8 +8,8 @@ if [ -z "$ETCD_URL" ]; then
 
     if ! compgen -A variable | grep LIVE_ENCODINGS >/dev/null; then
        echo "[awakening-nginx-rtmp] setting default LIVE_ENCODINGS because none were set"
-       export LIVE_ENCODINGS_LOW=128:64:160000
-       export LIVE_ENCODINGS_MED=512:128:640000
+       export LIVE_ENCODINGS_LOW=640x480:128:64:160000
+       export LIVE_ENCODINGS_MED=640x480:512:128:640000
     fi
 
     if [ ! -z "$PUBLISH_SECRET" ]; then
