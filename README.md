@@ -4,20 +4,30 @@ Live streaming video server for Flash, iOS and Android
 
 ## Configuration with environment variables
 
-You must set the following environment variables:
+You must set the `LIVE_SECRET`.
 
  - `LIVE_SECRET`: Secret token for publishing and statistics.
- - `LIVE_ENCODINGS_{name}`: You must set one or more of these variables
-    that represent the transcoding rates and HLS variant bandwidth.
+
+**Other settings are optional and considered experimental.**
+They are under active development and may change or be removed.
+
+The variants option allows for customization beyond the default encoder settings:
+
+ - `LIVE_VARIANTS_{name}`: Represents video and audio transcoding
+    rates and the associated HLS variant bandwidth.
     These settings will depend on your hardware capability and desired quality.
-    The format is `{video_kilobits}:{audio_kilobits}:{bandwidth}`.
+    The format is `{video_kbps}:{audio_kbps}:{bandwidth_bps}`.
     For full details, see `templates/nginx.conf.tmpl` and refer to the nginx-rtmp
     documentation.
 
-These settings are optional:
+The downstreams option allows for copying an incoming RTMP stream to another server,
+e.g. Facebook.
 
  - `LIVE_DOWNSTREAMS_{name}`: Corresponds to an RTMP URL that will recieve a copy of
     the incoming stream. _You should only accept a single stream if you use this setting._
+
+The CORS setting allows for cross-origin requests from another frontend server.
+
  - `LIVE_CORS`: HTTP origin regex to allow CORS on the /hls location.
 
 This image exposes ports `80` for HTTP and `1935` for RTMP.
@@ -25,11 +35,13 @@ This image exposes ports `80` for HTTP and `1935` for RTMP.
 ### Example
 
     docker run -e LIVE_SECRET=VERY_SECRET_KEY
-               -e LIVE_ENCODINGS_LOW=128:64:160000
-               -e LIVE_ENCODINGS_MED=512:128:640000
+               -e LIVE_VARIANTS_LOW=128:64:192000
+               -e LIVE_VARIANTS_MED=512:128:640000
                -p 80:80 -p 1935:1935 awakening/awakening-nginx-rtmp
 
 ## Dynamic configuration reloading with etcd
+
+**This feature is experimental.** It may change or be removed.
 
 If `ETCD_URL` is provided, configuration is expected to come from the etcd service.
 

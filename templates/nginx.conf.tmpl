@@ -156,8 +156,7 @@ rtmp {
             deny play all;
 
             exec_push /usr/local/bin/avconv -i rtmp://localhost/pub_{{getv "/live/secret"}}/$name
-                -filter:v scale=-1:460
-                {{range getvs "/live/encodings/*"}}{{ $bitrates := split . ":" }}-c:a libfdk_aac -b:a {{index $bitrates 1}}k  -c:v libx264 -b:v {{index $bitrates 0}}k  -f flv rtmp://localhost/hls/$name_{{index $bitrates 0}}
+                {{range getvs "/live/variants/*"}}{{ $rates := split . ":" }}-c:a libfdk_aac -b:a {{index $rates 1}}k  -c:v libx264 -b:v {{index $rates 0}}k  -f flv rtmp://localhost/hls/$name_{{index $rates 0}}
                 {{end}}{{range getvs "/live/downstreams/*"}}-c:a copy -c:v copy -f flv {{.}}
                 {{end}};
         }
@@ -184,9 +183,9 @@ rtmp {
             hls_fragment 15s;
             hls_nested on;
 
-            {{range getvs "/live/encodings/*"}}
-            {{ $bitrates := split . ":" }}
-            hls_variant _{{index $bitrates 0}}   BANDWIDTH={{index $bitrates 2}};
+            {{range getvs "/live/variants/*"}}
+            {{ $rates := split . ":" }}
+            hls_variant _{{index $rates 0}}   BANDWIDTH={{index $rates 2}};
             {{end}}
         }
 
