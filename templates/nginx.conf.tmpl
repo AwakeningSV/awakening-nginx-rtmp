@@ -1,7 +1,7 @@
 user  nginx;
 worker_processes  auto;
 
-error_log  /var/log/nginx/error.log warn;
+error_log  /var/log/nginx/error.log debug;
 
 daemon off;
 
@@ -155,11 +155,12 @@ rtmp {
             allow play 127.0.0.1;
             deny play all;
 
-            exec_push /usr/local/bin/avconv -i rtmp://localhost/pub_{{getv "/live/secret"}}/$name
-                -filter:v scale=-1:460
-                {{range getvs "/live/encodings/*"}}{{ $bitrates := split . ":" }}-c:a libfdk_aac -b:a {{index $bitrates 1}}k  -c:v libx264 -b:v {{index $bitrates 0}}k  -f flv rtmp://localhost/hls/$name_{{index $bitrates 0}}
-                {{end}}{{range getvs "/live/downstreams/*"}}-c:a copy -c:v copy -f flv {{.}}
-                {{end}};
+#            exec_push /usr/local/bin/avconv -i rtmp://localhost/pub_{{getv "/live/secret"}}/$name
+#                -filter:v scale=-1:460
+#                {{range getvs "/live/encodings/*"}}{{ $bitrates := split . ":" }}-c:a libfdk_aac -b:a {{index $bitrates 1}}k  -c:v libx264 -b:v {{index $bitrates 0}}k  -f flv rtmp://localhost/hls/$name_{{index $bitrates 0}}
+#                {{end}}{{range getvs "/live/downstreams/*"}}-c:a copy -c:v copy -f flv {{.}}
+#                {{end}};
+
         }
 
         application player {

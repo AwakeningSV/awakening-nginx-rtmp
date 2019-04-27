@@ -1,44 +1,45 @@
-FROM ubuntu:14.04
-MAINTAINER Reid Burke <me@reidburke.com>
+FROM ubuntu:18.04
+MAINTAINER Reid Burke <reid@awakeningchurch.com>
 
-RUN apt-get -q -y update \
-    && apt-get -q -y install cron logrotate make build-essential libssl-dev \
-        zlib1g-dev libpcre3 libpcre3-dev curl pgp yasm \
-    && apt-get -q -y build-dep nginx \
-    && apt-get -q -y clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
+RUN echo "deb-src http://archive.ubuntu.com/ubuntu/ bionic main restricted" >> /etc/apt/sources.list \
+    && apt-get -qy update \
+    && apt-get -qy install cron logrotate make build-essential libssl-dev \
+        zlib1g-dev libpcre3 libpcre3-dev curl pgp nasm librtmp-dev \
+    && apt-get -qy build-dep nginx \
+    && apt-get -qy clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
 RUN cd /root \
-    && curl -L https://downloads.sourceforge.net/project/opencore-amr/fdk-aac/fdk-aac-0.1.4.tar.gz > fdk-aac.tgz \
+    && curl -L https://downloads.sourceforge.net/project/opencore-amr/fdk-aac/fdk-aac-2.0.0.tar.gz > fdk-aac.tgz \
     && mkdir fdk-aac && tar xzf fdk-aac.tgz -C fdk-aac --strip 1 && cd fdk-aac \
     && ./configure && make install
 
 RUN cd /root \
-    && curl -L ftp://ftp.videolan.org/pub/x264/snapshots/x264-snapshot-20160225-2245.tar.bz2 > x264.tar.bz2 \
+    && curl -L ftp://ftp.videolan.org/pub/x264/snapshots/x264-snapshot-20190331-2245.tar.bz2 > x264.tar.bz2 \
     && mkdir x264 && tar xjf x264.tar.bz2 -C x264 --strip 1 && cd x264 \
     && ./configure --enable-static && make install
 
 RUN cd /root \
-    && curl -L https://libav.org/releases/libav-11.4.tar.gz > libav.tgz \
-    && mkdir libav && tar xzf libav.tgz -C libav --strip 1 && cd libav \
+    && curl -L https://ffmpeg.org/releases/ffmpeg-4.1.tar.bz2 > ffmpeg.tgz \
+    && mkdir ffmpeg && tar xjf ffmpeg.tgz -C ffmpeg --strip 1 && cd ffmpeg \
     && ./configure --enable-gpl --enable-nonfree \
-        --enable-libfdk-aac --enable-libx264 \
+        --enable-libfdk_aac --enable-libx264 --enable-librtmp \
     && make install
 
 RUN groupadd nginx
 RUN useradd -m -g nginx nginx
 RUN mkdir -p /var/log/nginx /var/cache/nginx
 
-RUN cd /root && curl -L https://github.com/arut/nginx-rtmp-module/archive/v1.1.7.tar.gz > nginx-rtmp.tgz \
+RUN cd /root && curl -L https://github.com/arut/nginx-rtmp-module/archive/v1.2.1.tar.gz > nginx-rtmp.tgz \
     && mkdir nginx-rtmp && tar xzf nginx-rtmp.tgz -C nginx-rtmp --strip 1 
 
 RUN mkdir /www && cp /root/nginx-rtmp/stat.xsl /www/info.xsl && chown -R nginx:nginx /www
 
 RUN cd /root \
-    && curl -L -O http://nginx.org/download/nginx-1.8.1.tar.gz \
-    && curl -L -O http://nginx.org/download/nginx-1.8.1.tar.gz.asc \
+    && curl -L -O http://nginx.org/download/nginx-1.14.2.tar.gz \
+    && curl -L -O http://nginx.org/download/nginx-1.14.2.tar.gz.asc \
     && gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-key A1C052F8 \
-    && gpg nginx-1.8.1.tar.gz.asc \
-    && tar xzf nginx-1.8.1.tar.gz && cd nginx-1.8.1 \
+    && gpg nginx-1.14.2.tar.gz.asc \
+    && tar xzf nginx-1.14.2.tar.gz && cd nginx-1.14.2 \
     && ./configure \
         --prefix=/etc/nginx \
         --sbin-path=/usr/sbin/nginx \
