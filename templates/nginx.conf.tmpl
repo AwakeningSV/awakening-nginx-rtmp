@@ -168,7 +168,13 @@ rtmp {
                     -filter:v scale={{$scale}}
                     -f flv rtmp://localhost/hls/$name_{{$total_bitrate -}}
                 {{- end -}}
-                {{- range getvs "/live/downstreams/*" -}}
+                {{- range getvs "/live/facebook/*"}}
+                    -filter:v scale=1080x720 -c:a libfdk_aac -b:a 128k
+                    -c:v libx264 -b:v 2M -maxrate 2M -bufsize 4M
+                    -profile:v high -level 4.2 -tune zerolatency
+                    -f flv {{.}}
+                {{- end}};
+                {{- range getvs "/live/downstreams/*"}}
                     -c:a copy -c:v copy -f flv {{.}}
                 {{- end}};
 
