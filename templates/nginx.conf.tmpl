@@ -1,7 +1,7 @@
 user  nginx;
 worker_processes  auto;
 
-error_log  /var/log/nginx/error.log debug;
+error_log  /var/log/nginx/error.log info;
 
 daemon off;
 
@@ -155,11 +155,22 @@ rtmp {
             allow play 127.0.0.1;
             deny play all;
 
-#            exec_push /usr/local/bin/avconv -i rtmp://localhost/pub_{{getv "/live/secret"}}/$name
-#                -filter:v scale=-1:460
-#                {{range getvs "/live/encodings/*"}}{{ $bitrates := split . ":" }}-c:a libfdk_aac -b:a {{index $bitrates 1}}k  -c:v libx264 -b:v {{index $bitrates 0}}k  -f flv rtmp://localhost/hls/$name_{{index $bitrates 0}}
-#                {{end}}{{range getvs "/live/downstreams/*"}}-c:a copy -c:v copy -f flv {{.}}
-#                {{end}};
+            exec_push /usr/local/bin/ffmpeg -i rtmp://localhost/pub_{{getv "/live/secret"}}/$name
+                {{range getvs "/live/encodings/*" -}}
+                    {{- $encoding := split . ":" -}}
+                    {{- $scale := index $encoding 2 -}}
+                    {{- $video_bitrate := atoi (index $encoding 0) -}}
+                    {{- $audio_bitrate := atoi (index $encoding 1) -}}
+                    {{- $total_bitrate := add $video_bitrate $audio_bitrate }}
+                    -c:a libfdk_aac {{- if lt $audio_bitrate 96 }} -profile:a aac_he {{- end}}
+                    -b:a {{$audio_bitrate}}k -c:v libx264 -b:v {{$video_bitrate}}k -tune zerolatency
+                    -profile:v high -level 4.0
+                    -filter:v scale={{$scale}}
+                    -f flv rtmp://localhost/hls/$name_{{$total_bitrate -}}
+                {{- end -}}
+                {{- range getvs "/live/downstreams/*" -}}
+                    -c:a copy -c:v copy -f flv {{.}}
+                {{- end}};
 
         }
 
@@ -182,13 +193,24 @@ rtmp {
 
             hls on;
             hls_path /tmp/hls;
-            hls_fragment 15s;
+            hls_fragment 5s;
             hls_nested on;
+            hls_continuous on;
 
+            # CODECS values: https://developer.apple.com/documentation/http_live_streaming/hls_authoring_specification_for_apple_devices/hls_authoring_specification_for_apple_devices_appendices
             {{range getvs "/live/encodings/*"}}
-            {{ $bitrates := split . ":" }}
-            hls_variant _{{index $bitrates 0}}   BANDWIDTH={{index $bitrates 2}};
-            {{end}}
+            {{- $encoding := split . ":" -}}
+            {{- $video_bitrate := atoi (index $encoding 0) -}}
+            {{- $audio_bitrate := atoi (index $encoding 1) -}}
+            {{- $total_bitrate := add $video_bitrate $audio_bitrate }}
+            hls_variant _{{$total_bitrate}}   BANDWIDTH={{mul $total_bitrate 1000}} CODECS="avc1.4d0028,
+                {{- if lt $audio_bitrate 96 -}}
+                    mp4a.40.5
+                {{- else -}}
+                    mp4a.40.2
+                {{- end -}}
+            ";
+            {{- end}}
         }
 
     }

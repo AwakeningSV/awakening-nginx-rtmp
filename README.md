@@ -10,7 +10,7 @@ You must set the following environment variables:
  - `LIVE_ENCODINGS_{name}`: You must set one or more of these variables
     that represent the transcoding rates and HLS variant bandwidth.
     These settings will depend on your hardware capability and desired quality.
-    The format is `{video_kilobits}:{audio_kilobits}:{bandwidth}`.
+    The format is `{video_kilobits}:{audio_kilobits}:{bandwidth}:{scale}`.
     For full details, see `templates/nginx.conf.tmpl` and refer to the nginx-rtmp
     documentation.
 

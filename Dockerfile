@@ -75,7 +75,7 @@ RUN cd /root \
         --with-ipv6 \
    && make install
 
-RUN cd /root && curl -L https://github.com/kelseyhightower/confd/releases/download/v0.12.0-alpha3/confd-0.12.0-alpha3-linux-amd64 > confd \
+RUN cd /root && curl -L https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64 > confd \
     && mv confd /usr/local/bin/confd && chmod +x /usr/local/bin/confd
 
 ADD templates/nginx.conf.tmpl /etc/confd/templates/nginx.conf.tmpl
