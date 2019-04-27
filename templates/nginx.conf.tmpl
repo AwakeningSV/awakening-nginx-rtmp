@@ -164,7 +164,7 @@ rtmp {
                     {{- $total_bitrate := add $video_bitrate $audio_bitrate }}
                     -c:a libfdk_aac {{- if lt $audio_bitrate 96 }} -profile:a aac_he {{- end}}
                     -b:a {{$audio_bitrate}}k -c:v libx264 -b:v {{$video_bitrate}}k -tune zerolatency
-                    -profile:v high -level 4.0
+                    -profile:v high -level 4.0 -maxrate {{$video_bitrate}}k -bufsize {{$video_bitrate}}k
                     -filter:v scale={{$scale}}
                     -f flv rtmp://localhost/hls/$name_{{$total_bitrate -}}
                 {{- end -}}
